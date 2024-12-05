@@ -1,0 +1,2 @@
+File no,Filename,NearestNeighborHeuristic,2opt-1,NodeShift-1,NodeSwap-1,GreedyHeuristic,2opt-2,NodeShift-2,NodeSwap-2,CheapestInsertionHeuristic,2opt-3,NodeShift-3,NodeSwap-3
+1,data\st70.tsp,833.460186,753.590968,698.353287,698.353287,816.275106,709.257094,699.366134,694.604913,784.527648,747.670291,729.384534,729.384534
