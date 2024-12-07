@@ -95,7 +95,6 @@ double gini_impurity(vector<Car> &dataset, string attr, string class_attr)
     return gini;
 }
 
-// Function 3: Train a Decision Tree
 Node *train_decision_tree(vector<Car> &dataset, vector<string> &attributes, string class_attr,
                           double (*metric)(vector<Car> &, string, string), int k = 1, int min_size = 5, double threshold = 0.01)
 {
@@ -105,7 +104,6 @@ Node *train_decision_tree(vector<Car> &dataset, vector<string> &attributes, stri
         return leaf;
     }
 
-    // Check if all examples belong to the same class
     map<string, int> class_counts = count_values(dataset, class_attr);
     if (class_counts.size() == 1)
     {
@@ -115,7 +113,6 @@ Node *train_decision_tree(vector<Car> &dataset, vector<string> &attributes, stri
         return leaf;
     }
 
-    // If no attributes are left, return the majority class as a leaf
     if (attributes.empty())
     {
         Node *leaf = new Node();
@@ -128,7 +125,6 @@ Node *train_decision_tree(vector<Car> &dataset, vector<string> &attributes, stri
         return leaf;
     }
 
-    // Checking if the dataset is too small to split
     if (dataset.size() < min_size)
     {
         Node *leaf = new Node();
@@ -141,7 +137,6 @@ Node *train_decision_tree(vector<Car> &dataset, vector<string> &attributes, stri
         return leaf;
     }
 
-    // Find the top k attributes based on the chosen metric
     vector<pair<string, double>> scores;
     for (auto &attr : attributes)
     {
@@ -154,22 +149,15 @@ Node *train_decision_tree(vector<Car> &dataset, vector<string> &attributes, stri
 
     if (scores.size() >= k)
     {
-
-        // Sort the attributes based on their score
         sort(scores.begin(), scores.end(), [](const pair<string, double> &a, const pair<string, double> &b)
              { return a.second < b.second; });
 
-        // Select the top k attributes (if k is less than the number of attributes)
         vector<string> top_k_attributes;
         for (int i = 0; i < k && i < scores.size(); ++i)
         {
             top_k_attributes.push_back(scores[i].first);
         }
 
-        // Randomly choose one of the top k attributes
-        // random_device rd;
-        // mt19937 gen(rd());
-        // uniform_int_distribution<> dis(0, top_k_attributes.size() - 1);
         int random_pick = rand() % k;
         best_attribute = top_k_attributes[random_pick];
         best_score = scores[random_pick].second;
@@ -180,7 +168,6 @@ Node *train_decision_tree(vector<Car> &dataset, vector<string> &attributes, stri
         best_score = scores[0].second;
     }
 
-    // Check if the score is below a threshold
     if (best_score <= threshold)
     {
         Node *leaf = new Node();
@@ -193,19 +180,14 @@ Node *train_decision_tree(vector<Car> &dataset, vector<string> &attributes, stri
         return leaf;
     }
 
-    // Create a new node for the best attribute
     Node *tree = new Node();
     tree->setNodeAttribute(best_attribute);
 
-    // Get the unique values of the best attribute
     map<string, int> attr_values = count_values(dataset, best_attribute);
 
-    // Recursively train the subtree for each attribute value
     for (auto &[value, _] : attr_values)
     {
         vector<Car> filtered = filter_dataset(dataset, best_attribute, value);
-
-        // Remove the best attribute from the list of attributes
         vector<string> remaining_attributes;
         for (auto &attr : attributes)
         {
@@ -214,7 +196,6 @@ Node *train_decision_tree(vector<Car> &dataset, vector<string> &attributes, stri
                 remaining_attributes.push_back(attr);
             }
         }
-
         tree->setChild(value, train_decision_tree(filtered, remaining_attributes, class_attr, metric, k));
     }
 
@@ -226,45 +207,29 @@ double getAccuracy(vector<Car> &cars, double (*metric)(vector<Car> &, string, st
 
     double total_accuracy = 0;
 
-    // Perform multiple iterations of training and testing
     for (int i = 0; i < ITERATIONS; i++) {
-        //cout << "Iteration : " << i << endl;
-        // Shuffle the dataset for randomness
-        // random_shuffle(cars.begin(), cars.end());
         shuffle(cars.begin(), cars.end(), rng);
 
-        // Split the dataset into training and testing sets
         size_t train_size = static_cast<size_t>(cars.size() * TRAIN_PERCENTAGE);
         vector<Car> training_set(cars.begin(), cars.begin() + train_size);
         vector<Car> test_set(cars.begin() + train_size, cars.end());
 
-        // Train the decision tree using information gain
         Node *root = train_decision_tree(training_set, attributes, class_attr, gini_impurity, 3);
-        Tree tree(root);
+        DecisionTree tree(root);
 
-        // Evaluate the decision tree on the test set
         string predicted, actual;
         int correct = 0;
-
         for (auto &car : test_set) {
-            //cout << car.getCarAttribute(class_attr) << endl;
             predicted = tree.getClassification(car);
             actual = car.getCarAttribute(class_attr);
             if (predicted == actual)
                 correct++;
-            //cout << predicted << "  " << actual << endl;
         }
 
-        // Calculate accuracy for this iteration
         double accuracy = static_cast<double>(correct) / test_set.size();
-        //cout << "Iteration " << i + 1 << " Accuracy:\t" << accuracy << endl;
-
         total_accuracy += accuracy;
     }
 
-    // Calculate mean accuracy and standard deviation
     double mean = total_accuracy / ITERATIONS;
-    //cout << "Mean Accuracy: " << mean << endl;
-
     return mean;
 }

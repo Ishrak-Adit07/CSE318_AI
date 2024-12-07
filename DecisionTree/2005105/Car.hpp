@@ -2,13 +2,11 @@
 
 class Car
 {
-    string detail;
     map<string, string> attributes;
 
 public:
     Car(const string &str)
     {
-        this->detail = str;
         stringstream ss(str);
         vector<string> attribute_values;
         while (ss.good())
@@ -28,15 +26,6 @@ public:
         attributes[class_attr] = attribute_values[6];
     }
 
-    Car() = default;
-
-    map<string, string> getCarAttributes()
-    {
-        return attributes;
-    }
-
-    string getCarAttribute(const string &attr)
-    {
-        return attributes[attr];
-    }
+    map<string, string> getCarAttributes() { return attributes; }
+    string getCarAttribute(const string &attr) { return attributes[attr]; }
 };

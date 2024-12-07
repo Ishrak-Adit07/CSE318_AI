@@ -34,13 +34,13 @@ public:
     void setChild(string attr, Node * node) { children[attr] = node; }
 };
 
-class Tree
+class DecisionTree
 {
     Node *root;
 
 public:
-    Tree(Node *Root) : root(Root) {}
-    ~Tree()
+    DecisionTree(Node *Root) : root(Root) {}
+    ~DecisionTree()
     {
         if (root)
             delete root;
