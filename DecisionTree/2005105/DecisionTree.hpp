@@ -51,10 +51,20 @@ public:
         while (node && !(node->getIsLeaf()))
         {
             string attr_value = car.getCarAttribute(node->getNodeAttribute());
-            node = node->getChild(attr_value);
+            if(node->getChild(attr_value)) node = node->getChild(attr_value);
+            else break;
         }
-        if(node) return node->getLabel();
-        else return "";
-        // return node->getLabel();
+        return node->getLabel();
     }
 };
+
+
+// string classify(Node* root, const DataRow& row) {
+//     if (root->isLeaf) return root->label;
+
+//     string attrValue = row.attributes.at(root->attribute);
+//     if (root->children.count(attrValue)) {
+//         return classify(root->children.at(attrValue), row);
+//     }
+//     return root->label; // Default case
+// }

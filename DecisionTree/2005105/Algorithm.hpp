@@ -126,7 +126,7 @@ Node *train_decision_tree(vector<Car> &dataset, vector<string> &attributes, vect
         return leaf;
     }
 
-    string majority_class =  plurality_value(dataset);
+    string majority_class = plurality_value(dataset);
     if (attributes.empty())
     {
         Node *leaf = new Node();
@@ -135,13 +135,13 @@ Node *train_decision_tree(vector<Car> &dataset, vector<string> &attributes, vect
         return leaf;
     }
 
-    if (dataset.size() < min_size)
-    {
-        Node *leaf = new Node();
-        leaf->setIsLeaf(true);
-        leaf->setLabel(majority_class);
-        return leaf;
-    }
+    // if (dataset.size() < min_size)
+    // {
+    //     Node *leaf = new Node();
+    //     leaf->setIsLeaf(true);
+    //     leaf->setLabel(majority_class);
+    //     return leaf;
+    // }
 
     string best_attribute;
     double best_score;
@@ -174,14 +174,14 @@ Node *train_decision_tree(vector<Car> &dataset, vector<string> &attributes, vect
         best_score = scores[0].second;
     }
 
-    if (best_score <= threshold)
-    {
-        Node *leaf = new Node();
-        leaf->setIsLeaf(true);
-        // string majority_class = plurality_value(dataset);
-        leaf->setLabel(majority_class);
-        return leaf;
-    }
+    // if (best_score <= threshold)
+    // {
+    //     Node *leaf = new Node();
+    //     leaf->setIsLeaf(true);
+    //     // string majority_class = plurality_value(dataset);
+    //     leaf->setLabel(majority_class);
+    //     return leaf;
+    // }
 
     Node *tree = new Node();
     tree->setNodeAttribute(best_attribute);
@@ -211,7 +211,8 @@ double getAccuracy(vector<Car> &cars, double (*metric)(vector<Car> &, string, st
 
     double total_accuracy = 0;
 
-    for (int i = 0; i < ITERATIONS; i++) {
+    for (int i = 0; i < ITERATIONS; i++)
+    {
         shuffle(cars.begin(), cars.end(), rng);
 
         size_t train_size = static_cast<size_t>(cars.size() * TRAIN_PERCENTAGE);
@@ -223,7 +224,8 @@ double getAccuracy(vector<Car> &cars, double (*metric)(vector<Car> &, string, st
 
         string predicted, actual;
         int correct = 0;
-        for (auto &car : test_set) {
+        for (auto &car : test_set)
+        {
             predicted = tree.getClassification(car);
             actual = car.getCarAttribute(class_attr);
             if (predicted == actual)
@@ -235,5 +237,5 @@ double getAccuracy(vector<Car> &cars, double (*metric)(vector<Car> &, string, st
     }
 
     double mean = total_accuracy / ITERATIONS;
-    return  mean*100;
+    return mean * 100;
 }
