@@ -57,14 +57,3 @@ public:
         return node->getLabel();
     }
 };
-
-
-// string classify(Node* root, const DataRow& row) {
-//     if (root->isLeaf) return root->label;
-
-//     string attrValue = row.attributes.at(root->attribute);
-//     if (root->children.count(attrValue)) {
-//         return classify(root->children.at(attrValue), row);
-//     }
-//     return root->label; // Default case
-// }
