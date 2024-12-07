@@ -1,9 +1,9 @@
-#include "Algorithm.hpp"
 #include <algorithm>
 #include <fstream>
 #include <ctime>
 #include <cmath>
 #include <random>
+#include "Algorithm.hpp"
 
 #define ITERATIONS 20
 #define TRAIN_PERCENTAGE 0.8
@@ -12,9 +12,10 @@ vector<Car> readDataset(ifstream &instream)
 {
 
     vector<Car> cars;
+    string str;
+
     while (true)
     {
-        string str;
         getline(instream, str);
         if (instream.eof())
             break;
@@ -32,31 +33,24 @@ int main(int argc, char **argv)
     random_device rd;
     default_random_engine rng(rd());
 
-    if (argc < 2)
-    {
-        cout << "Usage: ./main <input_file>" << endl;
-        return 1;
-    }
-
-    string input_file = string(argv[1]);
+    string input_file = "car.data";
     ifstream instream(input_file);
-
-    if (!instream.is_open())
+    if (!instream)
     {
-        cout << "Error: Unable to open file " << input_file << endl;
+        cout << "Error while opening the input file" << endl;
         return 1;
     }
     vector<Car> cars = readDataset(instream);
     instream.close();
     if (cars.empty())
     {
-        cout << "Error: No data found in the input file." << endl;
+        cout << "No data found in the input file." << endl;
         return 1;
     }
 
     double best_ig = getAccuracy(cars, information_gain, rng, 1);
-    double top_3_ig = getAccuracy(cars, information_gain, rng, 3);
     double best_gini = getAccuracy(cars, gini_impurity, rng, 1);
+    double top_3_ig = getAccuracy(cars, information_gain, rng, 3);
     double top_3_gini = getAccuracy(cars, gini_impurity, rng, 3);
 
     print_accuracy_table(best_ig, best_gini, top_3_ig, top_3_gini);

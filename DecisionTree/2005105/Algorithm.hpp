@@ -42,7 +42,7 @@ string plurality_value(vector<Car> &dataset)
     return return_pair.first;
 }
 
-double information_gain(vector<Car> &dataset, string attr, string class_attr)
+double information_gain(vector<Car> &dataset, string attr)
 {
     int total_size = dataset.size();
 
@@ -80,25 +80,25 @@ double information_gain(vector<Car> &dataset, string attr, string class_attr)
     return total_entropy - remainder;
 }
 
-double gini_impurity(vector<Car> &dataset, string attr, string class_attr)
-{
+double gini_impurity(vector<Car> &dataset, string attr) {
     int total_size = dataset.size();
+    if (total_size == 0) return 0.0; 
+
     map<string, int> attr_counts = count_values(dataset, attr);
     double gini = 0.0;
 
-    for (auto &[value, count] : attr_counts)
-    {
+    for (auto &[value, count] : attr_counts) {
         double p = static_cast<double>(count) / total_size;
-        vector<Car> filtered = filter_dataset(dataset, attr, value);
 
-        map<string, int> filtered_class_counts = count_values(filtered, class_attr);
         double impurity = 1.0;
 
-        for (auto &[cls, fcount] : filtered_class_counts)
-        {
+        vector<Car> filtered = filter_dataset(dataset, attr, value);
+        map<string, int> filtered_class_counts = count_values(filtered, class_attr);
+        for (auto &[cls, fcount] : filtered_class_counts) {
             double q = static_cast<double>(fcount) / count;
             impurity -= q * q;
         }
+
         gini += p * impurity;
     }
 
@@ -106,13 +106,14 @@ double gini_impurity(vector<Car> &dataset, string attr, string class_attr)
 }
 
 Node *train_decision_tree(vector<Car> &dataset, vector<string> &attributes, vector<Car> &parent_dataset,
-                          double (*metric)(vector<Car> &, string, string), int k = 1, int min_size = 5, double threshold = 0.01)
+                          double (*metric)(vector<Car> &, string), int k=1, int min_size = 5, double threshold = 0.01)
 {
+
+    string majority_class = plurality_value(parent_dataset);
     if (dataset.empty())
     {
         Node *leaf = new Node();
         leaf->setIsLeaf(true);
-        string majority_class = plurality_value(parent_dataset);
         leaf->setLabel(majority_class);
         return leaf;
     }
@@ -126,7 +127,6 @@ Node *train_decision_tree(vector<Car> &dataset, vector<string> &attributes, vect
         return leaf;
     }
 
-    string majority_class = plurality_value(dataset);
     if (attributes.empty())
     {
         Node *leaf = new Node();
@@ -149,23 +149,20 @@ Node *train_decision_tree(vector<Car> &dataset, vector<string> &attributes, vect
     vector<pair<string, double>> scores;
     for (auto &attr : attributes)
     {
-        double score = metric(dataset, attr, class_attr);
+        double score = metric(dataset, attr);
         scores.push_back({attr, score});
     }
+    sort(scores.begin(), scores.end(), [](const pair<string, double> &a, const pair<string, double> &b)
+         { return a.second < b.second; });
 
-    if (scores.size() >= k)
+    if(k == 1){
+        best_attribute = scores[0].first;
+        best_score = scores[0].second;
+    }
+    else if ((k!=1) && (scores.size() >= k))
     {
-        sort(scores.begin(), scores.end(), [](const pair<string, double> &a, const pair<string, double> &b)
-             { return a.second < b.second; });
-
-        vector<string> top_k_attributes;
-        for (int i = 0; i < k && i < scores.size(); ++i)
-        {
-            top_k_attributes.push_back(scores[i].first);
-        }
-
         int random_pick = rand() % k;
-        best_attribute = top_k_attributes[random_pick];
+        best_attribute = scores[random_pick].first;
         best_score = scores[random_pick].second;
     }
     else
@@ -206,7 +203,7 @@ Node *train_decision_tree(vector<Car> &dataset, vector<string> &attributes, vect
     return tree;
 }
 
-double getAccuracy(vector<Car> &cars, double (*metric)(vector<Car> &, string, string), default_random_engine rng, int k = 1)
+double getAccuracy(vector<Car> &cars, double (*metric)(vector<Car> &, string), default_random_engine rng, int k = 1)
 {
 
     double total_accuracy = 0;
@@ -219,7 +216,7 @@ double getAccuracy(vector<Car> &cars, double (*metric)(vector<Car> &, string, st
         vector<Car> training_set(cars.begin(), cars.begin() + train_size);
         vector<Car> test_set(cars.begin() + train_size, cars.end());
 
-        Node *root = train_decision_tree(training_set, attributes, training_set, gini_impurity, 3);
+        Node *root = train_decision_tree(training_set, attributes, training_set, metric, k);
         DecisionTree tree(root);
 
         string predicted, actual;

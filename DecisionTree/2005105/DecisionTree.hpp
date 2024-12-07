@@ -14,7 +14,7 @@ public:
         if (is_leaf)
             return;
         for (auto child : children)
-            if (child.second != nullptr)
+            if (child.second != NULL)
                 delete child.second;
     }
 
