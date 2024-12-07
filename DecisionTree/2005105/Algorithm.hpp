@@ -32,6 +32,16 @@ vector<Car> filter_dataset(vector<Car> &dataset, string attr, string value)
     return filtered;
 }
 
+string plurality_value(vector<Car> &dataset)
+{
+    map<string, int> temp_map = count_values(dataset, class_attr);
+    pair<string, int> return_pair = {"", -1};
+    for (auto temp_pair : temp_map)
+        if (temp_pair.second > return_pair.second)
+            return_pair = temp_pair;
+    return return_pair.first;
+}
+
 double information_gain(vector<Car> &dataset, string attr, string class_attr)
 {
     int total_size = dataset.size();
@@ -95,12 +105,15 @@ double gini_impurity(vector<Car> &dataset, string attr, string class_attr)
     return gini;
 }
 
-Node *train_decision_tree(vector<Car> &dataset, vector<string> &attributes, string class_attr,
+Node *train_decision_tree(vector<Car> &dataset, vector<string> &attributes, vector<Car> &parent_dataset,
                           double (*metric)(vector<Car> &, string, string), int k = 1, int min_size = 5, double threshold = 0.01)
 {
     if (dataset.empty())
     {
         Node *leaf = new Node();
+        leaf->setIsLeaf(true);
+        string majority_class = plurality_value(parent_dataset);
+        leaf->setLabel(majority_class);
         return leaf;
     }
 
@@ -113,14 +126,11 @@ Node *train_decision_tree(vector<Car> &dataset, vector<string> &attributes, stri
         return leaf;
     }
 
+    string majority_class =  plurality_value(dataset);
     if (attributes.empty())
     {
         Node *leaf = new Node();
         leaf->setIsLeaf(true);
-        string majority_class = max_element(class_counts.begin(), class_counts.end(),
-                                            [](auto &a, auto &b)
-                                            { return a.second < b.second; })
-                                    ->first;
         leaf->setLabel(majority_class);
         return leaf;
     }
@@ -129,13 +139,12 @@ Node *train_decision_tree(vector<Car> &dataset, vector<string> &attributes, stri
     {
         Node *leaf = new Node();
         leaf->setIsLeaf(true);
-        string majority_class = max_element(class_counts.begin(), class_counts.end(),
-                                            [](auto &a, auto &b)
-                                            { return a.second < b.second; })
-                                    ->first;
         leaf->setLabel(majority_class);
         return leaf;
     }
+
+    string best_attribute;
+    double best_score;
 
     vector<pair<string, double>> scores;
     for (auto &attr : attributes)
@@ -143,9 +152,6 @@ Node *train_decision_tree(vector<Car> &dataset, vector<string> &attributes, stri
         double score = metric(dataset, attr, class_attr);
         scores.push_back({attr, score});
     }
-
-    string best_attribute;
-    double best_score;
 
     if (scores.size() >= k)
     {
@@ -172,16 +178,14 @@ Node *train_decision_tree(vector<Car> &dataset, vector<string> &attributes, stri
     {
         Node *leaf = new Node();
         leaf->setIsLeaf(true);
-        string majority_class = max_element(class_counts.begin(), class_counts.end(),
-                                            [](auto &a, auto &b)
-                                            { return a.second < b.second; })
-                                    ->first;
+        // string majority_class = plurality_value(dataset);
         leaf->setLabel(majority_class);
         return leaf;
     }
 
     Node *tree = new Node();
     tree->setNodeAttribute(best_attribute);
+    tree->setLabel(majority_class);
 
     map<string, int> attr_values = count_values(dataset, best_attribute);
 
@@ -196,7 +200,7 @@ Node *train_decision_tree(vector<Car> &dataset, vector<string> &attributes, stri
                 remaining_attributes.push_back(attr);
             }
         }
-        tree->setChild(value, train_decision_tree(filtered, remaining_attributes, class_attr, metric, k));
+        tree->setChild(value, train_decision_tree(filtered, remaining_attributes, dataset, metric, k));
     }
 
     return tree;
@@ -214,7 +218,7 @@ double getAccuracy(vector<Car> &cars, double (*metric)(vector<Car> &, string, st
         vector<Car> training_set(cars.begin(), cars.begin() + train_size);
         vector<Car> test_set(cars.begin() + train_size, cars.end());
 
-        Node *root = train_decision_tree(training_set, attributes, class_attr, gini_impurity, 3);
+        Node *root = train_decision_tree(training_set, attributes, training_set, gini_impurity, 3);
         DecisionTree tree(root);
 
         string predicted, actual;
@@ -231,5 +235,5 @@ double getAccuracy(vector<Car> &cars, double (*metric)(vector<Car> &, string, st
     }
 
     double mean = total_accuracy / ITERATIONS;
-    return mean;
+    return  mean*100;
 }

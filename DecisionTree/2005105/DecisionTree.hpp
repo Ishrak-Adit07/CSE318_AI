@@ -55,5 +55,6 @@ public:
         }
         if(node) return node->getLabel();
         else return "";
+        // return node->getLabel();
     }
 };
