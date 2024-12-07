@@ -46,17 +46,8 @@ double information_gain(vector<Car> &dataset, string attr)
 {
     int total_size = dataset.size();
 
-    map<string, int> class_counts = count_values(dataset, class_attr);
-    double total_entropy = 0.0;
-
-    for (auto &[cls, count] : class_counts)
-    {
-        double p = static_cast<double>(count) / total_size;
-        total_entropy -= p * log2(p);
-    }
-
     map<string, int> attr_counts = count_values(dataset, attr);
-    double remainder = 0.0;
+    double ig = 0.0;
 
     for (auto &[value, count] : attr_counts)
     {
@@ -74,10 +65,10 @@ double information_gain(vector<Car> &dataset, string attr)
                 entropy -= q * log2(q);
             }
         }
-        remainder += p * entropy;
+        ig += p * entropy;
     }
 
-    return total_entropy - remainder;
+    return ig;
 }
 
 double gini_impurity(vector<Car> &dataset, string attr) {
