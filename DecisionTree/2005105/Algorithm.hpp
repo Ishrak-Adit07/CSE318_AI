@@ -118,6 +118,7 @@ Node *train_decision_tree(vector<Car> &dataset, vector<string> &attributes, vect
         return leaf;
     }
 
+    majority_class = plurality_value(dataset);
     if (attributes.empty())
     {
         Node *leaf = new Node();
